@@ -30,6 +30,23 @@ describe Browsernizer::Router do
       app.should_receive(:call).with(response)
       subject.call(default_env)
     end
+
+    it "supports Internet Explorer 6 HTTP_ACCEPT: */* header" do
+      default_env.merge!({
+        'HTTP_USER_AGENT' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)',
+        'HTTP_ACCEPT' => '*/*'
+      })
+
+      response = default_env.dup
+      response['browsernizer'] = {
+        'supported' => true,
+        'browser' => "Internet Explorer",
+        'version' => "6.0"
+      }
+
+      app.should_receive(:call).with(response)
+      subject.call(default_env)
+    end
   end
 
   context "Unsupported Browser" do
@@ -87,6 +104,28 @@ describe Browsernizer::Router do
         app.should_receive(:call).with(@env)
         subject.call(@env)
       end
+    end
+
+    it "blocks Internet Explorer 6 HTTP_ACCEPT: */* header" do
+      default_env.merge!({
+        'HTTP_USER_AGENT' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)',
+        'HTTP_ACCEPT' => '*/*'
+      })
+
+      response = default_env.dup
+      response['browsernizer'] = {
+        'supported' => false,
+        'browser' => "Internet Explorer",
+        'version' => "6.0"
+      }
+
+      app.should_receive(:call).with(response)
+
+      router = Browsernizer::Router.new(app) do |config|
+        config.supported 'Internet Explorer', '7'
+      end
+
+      router.call(default_env)
     end
   end
 

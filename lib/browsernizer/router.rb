@@ -42,7 +42,9 @@ module Browsernizer
     end
 
     def html_request?
-      @env["HTTP_ACCEPT"] && @env["HTTP_ACCEPT"].include?("text/html")
+      if http_accept = @env["HTTP_ACCEPT"]
+        http_accept.include?("text/html") || http_accept.include?("*/*")
+      end
     end
 
     def on_redirection_path?
